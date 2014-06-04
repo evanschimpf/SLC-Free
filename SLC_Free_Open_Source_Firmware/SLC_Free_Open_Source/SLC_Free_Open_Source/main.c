@@ -79,21 +79,17 @@ INT Heater_Iout;
 //PID Controller, Input is Ri_Delta (The Peak to peak voltage on the Vs Port of the sensor) output is PWM8_Heater, PWM8_Heater is controlled such that Ri_Delta is maintained at 80 (80 =750C)
 //Only a PI controller is used as adding the D term does not effect performance 
 //Everything is inflated by a factor of 4 so that floating point is avioded
-void Heater_PID(void) // Ned to run this when counter >50
-{
-
-	Ri_Delta_Error=Ri_Delta_Target-Ri_Delta;
+void Heater_PID(void) { // Ned to run this when counter >50
+	Ri_Delta_Error = Ri_Delta_Target - Ri_Delta;
 	//Put limits on Error so PID does not go Fubar, and also so that the worst case multiplication does not overflow
-	if (Ri_Delta_Error>56)
-	{
-		Ri_Delta_Error=56;
+	if (Ri_Delta_Error > 56) {
+		Ri_Delta_Error = 56;
+	} else if (Ri_Delta_Error < -56) {
+		Ri_Delta_Error = -56;
 	}
-	if (Ri_Delta_Error<-56)
-	{
-		Ri_Delta_Error=-56;
-	}
-	Heater_Pout=(Heater_PID_Kp*Ri_Delta_Error)/16;
-	Ri_Delta_Error_Sum=Ri_Delta_Error_Sum+Ri_Delta_Error;
+	
+	Heater_Pout = (Heater_PID_Kp * Ri_Delta_Error) / 16;
+	Ri_Delta_Error_Sum = Ri_Delta_Error_Sum + Ri_Delta_Error;
 	//If the sensor is too hot, then disreguard the Integratal contribution and just use the proportional to quickly correct the sensor temperature
 	/*
 	if((Ri_Delta<60)&&(Ri_Delta_Error_Sum>0))
@@ -101,34 +97,26 @@ void Heater_PID(void) // Ned to run this when counter >50
 		Ri_Delta_Error_Sum=0;
 	}
 	*/
+	
 	//Put limits on Error so PID does not go Fubar, and also so that the worst case multiplication does not overflow
-	if (Ri_Delta_Error_Sum>1024)
-	{
-		Ri_Delta_Error_Sum=1024;
+	if (Ri_Delta_Error_Sum > 1024) {
+		Ri_Delta_Error_Sum = 1024;
+	} else if (Ri_Delta_Error_Sum < -1024) {
+		Ri_Delta_Error_Sum = -1024;
 	}
-	if (Ri_Delta_Error_Sum<-1024)
-	{
-		Ri_Delta_Error_Sum=-1024;
-	}
-	Heater_Iout=(Heater_PID_Ki*Ri_Delta_Error_Sum)/16;
-	if (Heatup_Heater_Output<255) // if Heatup_Heater_Output is < 255 that means the unit just turned on and to give control to the heatup routine
-	{
-		Heater_Output=Heatup_Heater_Output;	
-	}
-	else
-	{	
-		Heater_Output=Heater_PID_Output_Bias+Heater_Pout+Heater_Iout;			
+	
+	Heater_Iout = (Heater_PID_Ki * Ri_Delta_Error_Sum) / 16;
+	if (Heatup_Heater_Output < 255) { // if Heatup_Heater_Output is < 255 that means the unit just turned on and to give control to the heatup routine
+		Heater_Output = Heatup_Heater_Output;	
+	} else {	
+		Heater_Output = Heater_PID_Output_Bias + Heater_Pout + Heater_Iout;			
 	}
 	//Heater_Output=Heater_PID_Output_Bias+Heater_Pout+Heater_Iout;	
-	if (Heater_Output<0)
-	{
-		Heater_Output=0;
+	if (Heater_Output < 0) {
+		Heater_Output = 0;
+	} else if (Heater_Output > 255) {
+		Heater_Output = 255;
 	}
-	if (Heater_Output>255)
-	{
-		Heater_Output=255;
-	}
-
 
 	PWM8_Heater_WritePulseWidth(Heater_Output);
 	//PWM8_Heater_WritePulseWidth(200);
@@ -141,50 +129,45 @@ INT Ia_Iout;
 //PID Controller, Input is Ri_Mid (The average voltage on the Vs Port of the sensor) output is DAC9_Ia, DAC9_Ia sink/sources current to the Sensor pump cell such that Ri_Mid is is the same voltage as Vref
 //Only a PI controller is used as adding the D term does not effect performance 
 //Everything is inflated by a factor of 4 so that floating point is avioded
-void Ia_PID(void)
-{
-
-
-	Ri_Mid_Error=Ri_Mid_Target-Ri_Mid;
+void Ia_PID(void) {
+	Ri_Mid_Error = Ri_Mid_Target - Ri_Mid;
 	//Put limits on Error so PID does not go Fubar, and also so that the worst case multiplication does not overflow
-	if (Ri_Mid_Error>86)
-	{
-		Ri_Mid_Error=86;
+	if (Ri_Mid_Error > 86) {
+		Ri_Mid_Error = 86;
+	} else if (Ri_Mid_Error <- 86) {
+		Ri_Mid_Error = -86;
 	}
-	if (Ri_Mid_Error<-86)
-	{
-		Ri_Mid_Error=-86;
-	}
-	Ia_Pout=(Ia_PID_Kp*Ri_Mid_Error)/16;
-	Ri_Mid_Error_Sum=Ri_Mid_Error_Sum+Ri_Mid_Error;
+	
+	Ia_Pout = (Ia_PID_Kp * Ri_Mid_Error) / 16;
+	Ri_Mid_Error_Sum = Ri_Mid_Error_Sum + Ri_Mid_Error;
+	
 	//Put limits on Error so PID does not go Fubar, and also so that the worst case multiplication does not overflow
-	if (Ri_Mid_Error_Sum>256)
-	{
-		Ri_Mid_Error_Sum=256;
+	if (Ri_Mid_Error_Sum > 256) {
+		Ri_Mid_Error_Sum = 256;
+	} else if (Ri_Mid_Error_Sum <- 256) {
+		Ri_Mid_Error_Sum = -256;
 	}
-	if (Ri_Mid_Error_Sum<-256)
-	{
-		Ri_Mid_Error_Sum=-256;
-	}
+	
 	Ia_Iout=(Ia_PID_Ki*Ri_Mid_Error_Sum)/16;
 	Ia_Output=Ia_Output_Bias+Ia_Pout+Ia_Iout;
+	
 	//9 Bit Dac so only 0-511 is allowed, for some reason i put the limit at 510, I foget exactly why.
-	if (Ia_Output<0)
-	{
-		Ia_Output=0;
+	if (Ia_Output < 0) {
+		Ia_Output = 0;
+	} else if (Ia_Output > 510) {
+		Ia_Output = 510;
 	}
-	if (Ia_Output>510)
-	{
-		Ia_Output=510;
-	}
-	DAC9_Ia_WriteStall (Ia_Output);
+	DAC9_Ia_WriteStall(Ia_Output);
 	//DAC9_Ia_WriteStall (256);
 }
-INT IIR_Int(INT Vin, INT Vout, BYTE A)
-{
-	return (Vout + (Vin - Vout)/A);
+
+INT IIR_Int(INT Vin, INT Vout, BYTE A) {
+	return (Vout + (Vin - Vout) / A);
 }
 
+#define bota(Base10) ((char) Base10 + '0')
+
+/*
 char btoa(BYTE Base10)
 {
 	char ascii;
@@ -221,12 +204,13 @@ char btoa(BYTE Base10)
 			ascii='9';
 	}
 	return (ascii);
-}
-	BYTE Ia_PID_Counter=0;
-	BYTE Vout_Lookup_Counter=0;
-	BYTE Heater_PID_Counter=0;
-	BYTE LCD_Counter=0;
-	BYTE Heatup_Counter=0;
+} 
+*/
+	BYTE Ia_PID_Counter = 0;
+	BYTE Vout_Lookup_Counter = 0;
+	BYTE Heater_PID_Counter = 0;
+	BYTE LCD_Counter = 0;
+	BYTE Heatup_Counter = 0;
 	INT Ri_Min,Ri_Max;
 	INT ip,ip_Justified;
 	BYTE Lambda_x100;
@@ -245,7 +229,7 @@ char btoa(BYTE Base10)
 void main(void)
 {
 	unsigned long temp_ulong;
-	INT temp_int,temp_int2;
+	INT temp_int, temp_int2;
 	BYTE temp_byte;
 	AMUX4_0_InputSelect(AMUX4_0_PORT0_1);        
    	AMUX4_1_InputSelect(AMUX4_1_PORT0_0);
@@ -268,188 +252,173 @@ void main(void)
 	LCD_Start();                  // Initialize LCD
 	LCD_InitBG(LCD_SOLID_BG);
 
-	for(;;)
-    {
+	while(1) {
 		temp_ulong++;
-		if ((ADC_IF&1)==1)
-		{
-			ADC_IF=ADC_IF&254;
-			Ri_Min=IIR_Int(Ri_Min_x1*2,Ri_Min,Ri_Filter_Strength);
-			Ri_Delta=Ri_Max-Ri_Min;
-			Ri_Mid=(Ri_Max+Ri_Min)/2;
+		if ((ADC_IF & 1) == 1) {
+			ADC_IF = ADC_IF & 254;
+			Ri_Min = IIR_Int(Ri_Min_x1*2,Ri_Min,Ri_Filter_Strength);
+			Ri_Delta = Ri_Max - Ri_Min;
+			Ri_Mid = (Ri_Max + Ri_Min) / 2;
 		}
-		if ((ADC_IF&2)==2)
-		{
-			ADC_IF=ADC_IF&253;
-			Ri_Max=IIR_Int(Ri_Max_x1*2,Ri_Max,Ri_Filter_Strength);
-			Ri_Delta=Ri_Max-Ri_Min;
-			Ri_Mid=(Ri_Max+Ri_Min)/2;
+
+		if ((ADC_IF & 2) == 2) {
+			ADC_IF = ADC_IF & 253;
+			Ri_Max = IIR_Int(Ri_Max_x1 * 2, Ri_Max, Ri_Filter_Strength);
+			Ri_Delta = Ri_Max - Ri_Min;
+			Ri_Mid = (Ri_Max + Ri_Min) / 2;
 		}
-		if ((ADC_IF&4)==4)
-		{
-			ADC_IF=ADC_IF&251;
-			ip=IIR_Int(ip_x1*2,ip,ip_Filter_Strength);
+
+		if ((ADC_IF & 4) == 4) {
+			ADC_IF = ADC_IF & 251;
+			ip = IIR_Int(ip_x1 * 2, ip, ip_Filter_Strength);
 		}
-		Ia_PID_Counter+=Sleep_Counter;
-		Heater_PID_Counter+=Sleep_Counter;
-		Heatup_Counter+=Sleep_Counter;
-		Vout_Lookup_Counter+=Sleep_Counter;
-		LCD_Counter+=Sleep_Counter;
-		Sleep_Counter=0;
-		if (Ia_PID_Counter>Ia_PID_Counter_Set)
-		{
-			Ia_PID_Counter=0;
+
+		Ia_PID_Counter += Sleep_Counter;
+		Heater_PID_Counter += Sleep_Counter;
+		Heatup_Counter += Sleep_Counter;
+		Vout_Lookup_Counter += Sleep_Counter;
+		LCD_Counter += Sleep_Counter;
+		Sleep_Counter = 0;
+
+		if (Ia_PID_Counter > Ia_PID_Counter_Set) {
+			Ia_PID_Counter = 0;
 			Ia_PID();
 		}
-		if (Heater_PID_Counter>Heater_PID_Counter_Set)
-		{
-			Heater_PID_Counter=0;
+
+		if (Heater_PID_Counter > Heater_PID_Counter_Set) {
+			Heater_PID_Counter = 0;
 			Heater_PID();
 		}
-		if (Vout_Lookup_Counter>Vout_Lookup_Counter_Set)
-		{
-			Vout_Lookup_Counter=0;
-			temp_int=ip-ip_to_Vout_Lookup_Start;
-			if (temp_int<0)
-			{
-				temp_int=0;
-			}
-			if (temp_int>(ip_to_Vout_Lookup_Size-1))
-			{
-				temp_int=(ip_to_Vout_Lookup_Size-1);
+
+		if (Vout_Lookup_Counter > Vout_Lookup_Counter_Set) {}
+			Vout_Lookup_Counter = 0;
+			temp_int = ip - ip_to_Vout_Lookup_Start;
+			if (temp_int < 0) {
+				temp_int = 0;
+			} else if (temp_int > (ip_to_Vout_Lookup_Size - 1)) {
+				temp_int = (ip_to_Vout_Lookup_Size - 1);
 			}
 			PWM8_Vout_WritePulseWidth(ip_to_Vout_Lookup[temp_int]);
 			
 			#ifdef NB_Out
-				temp_byte=23;//0.45v
-				if (ip<251) // 251 =0.9797787392968
-				{
-					temp_byte=46; //0.9v
-					
-				}
-				if (ip>259) //259 = 1.02295956968912
-				{
-					temp_byte=0; //0v
+				temp_byte = 23;//0.45v
+				if (ip < 251) { // 251 =0.9797787392968
+					temp_byte = 46; //0.9v		
+				} else if (ip > 259) { //259 = 1.02295956968912
+					temp_byte = 0; //0v
 				}
 				PWM8_NB_Out_WritePulseWidth(temp_byte);
 			#endif
-			
 		}
-		if (LCD_Counter>LCD_Counter_Set)
-		{
-			LCD_Counter=0;
+
+		if (LCD_Counter > LCD_Counter_Set) {
+			LCD_Counter = 0;
 			
 			#ifdef LCD_Lambda_Text
-				temp_int=ip-ip_to_Lambda_Lookup_Start;
-				if (temp_int<0)
-				{
-					temp_int=0;
+				temp_int = ip - ip_to_Lambda_Lookup_Start;
+				
+				if (temp_int < 0) {
+					temp_int = 0;
+				} else if (temp_int > (ip_to_Lambda_Lookup_Size - 1)) {
+					temp_int=(ip_to_Lambda_Lookup_Size - 1);
 				}
-				if (temp_int>(ip_to_Lambda_Lookup_Size-1))
-				{
-					temp_int=(ip_to_Lambda_Lookup_Size-1);
-				}
-				Lambda_x100=ip_to_Lambda_Lookup[temp_int];
-				temp_int=Lambda_x100;
+
+				Lambda_x100 = ip_to_Lambda_Lookup[temp_int];
+				temp_int = Lambda_x100;
 				LCD_Position(0,0);
-				temp_int2=temp_int/100;
-				Str1[9]=btoa(temp_int2);
-				temp_int=temp_int-100*temp_int2;
-				temp_int2=temp_int/10;
-				Str1[11]=btoa(temp_int2);
-				temp_int=temp_int-10*temp_int2;
-				Str1[12]=btoa(temp_int);
+				temp_int2 = temp_int / 100;
+				Str1[9] = btoa(temp_int2);
+				temp_int = temp_int - (100 * temp_int2);
+				temp_int2 = temp_int / 10;
+				Str1[11] = btoa(temp_int2);
+				temp_int = temp_int - (10 * temp_int2);
+				Str1[12] = btoa(temp_int);
 				LCD_PrString(Str1);
 			#endif
 
 			#ifdef LCD_AFR_Text
-				temp_int=ip-ip_to_Lambda_Lookup_Start;
-				if (temp_int<0)
-				{
-					temp_int=0;
+				temp_int = ip - ip_to_Lambda_Lookup_Start;
+
+				if (temp_int < 0) {
+					temp_int = 0;
+				} else if (temp_int > (ip_to_Lambda_Lookup_Size - 1)) {
+					temp_int = (ip_to_Lambda_Lookup_Size - 1);
 				}
-				if (temp_int>(ip_to_Lambda_Lookup_Size-1))
-				{
-					temp_int=(ip_to_Lambda_Lookup_Size-1);
-				}
+
 				Lambda_x100=ip_to_Lambda_Lookup[temp_int];
-				temp_int=Lambda_x100 * 147;
+				temp_int = (INT) Lambda_x100 * 147;
 				LCD_Position(0,0);
-				temp_int2=temp_int/1000;
-				Str1[6]=btoa(temp_int2);
-				temp_int=temp_int-1000*temp_int2;
-				temp_int2=temp_int/100;
-				Str1[7]=btoa(temp_int2);
-				temp_int=temp_int-100*temp_int2;
-				temp_int2=temp_int/10;
-				Str1[9]=btoa(temp_int2);
-				temp_int=temp_int-10*temp_int2;
-				Str1[10]=btoa(temp_int);
+				temp_int2 = temp_int / 1000;
+				Str1[6] = btoa(temp_int2);
+				temp_int = temp_int - (1000 * temp_int2);
+				temp_int2 = temp_int / 100;
+				Str1[7] = btoa(temp_int2);
+				temp_int = temp_int - (100 * temp_int2);
+				temp_int2 = temp_int / 10;
+				Str1[9] = btoa(temp_int2);
+				temp_int = temp_int - (10 * temp_int2);
+				Str1[10] = btoa(temp_int);
 				LCD_PrString(Str1);
 			#endif
 			
 			#ifdef LCD_Lambda_Graph
-				temp_int=ip-ip_to_Lambda_Lookup_Start;
-				if (temp_int<0)
-				{
-					temp_int=0;
+				temp_int = ip - ip_to_Lambda_Lookup_Start;
+				
+				if (temp_int < 0) {
+					temp_int = 0;
+				} else if (temp_int > (ip_to_Lambda_Lookup_Size-1)) {
+					temp_int = (ip_to_Lambda_Lookup_Size - 1);
 				}
-				if (temp_int>(ip_to_Lambda_Lookup_Size-1))
-				{
-					temp_int=(ip_to_Lambda_Lookup_Size-1);
-				}
-				Lambda_x100=ip_to_Graph_Lookup[temp_int];
-				LCD_DrawBG(0,0,16,Lambda_x100);
+
+				Lambda_x100 = ip_to_Graph_Lookup[temp_int];
+				LCD_DrawBG(0, 0, 16, Lambda_x100);
 			#endif
 			
 			#ifdef LCD_Temperature_Text
-				temp_int=Ri_Delta-Ri_Delta_to_Temperature_C_Start;
-				if (temp_int<0)
-				{
-					temp_int=0;
+				temp_int = Ri_Delta-Ri_Delta_to_Temperature_C_Start;
+
+				if (temp_int < 0) {
+					temp_int = 0;
+				} else if (temp_int > (Ri_Delta_to_Temperature_C_Size - 1)) {
+					temp_int = (Ri_Delta_to_Temperature_C_Size - 1);
 				}
-				if (temp_int>(Ri_Delta_to_Temperature_C_Size-1))
-				{
-					temp_int=(Ri_Delta_to_Temperature_C_Size-1);
-				}
-				LSU_Temperature_C=Ri_Delta_to_Temperature_C[temp_int]+Ri_Delta_to_Temperature_C_Offset;
-				temp_int=LSU_Temperature_C;
+
+				LSU_Temperature_C = Ri_Delta_to_Temperature_C[temp_int] + Ri_Delta_to_Temperature_C_Offset;
+				temp_int = LSU_Temperature_C;
 				LCD_Position(1,0);           
-				temp_int2=temp_int/100;
-				Str2[7]=btoa(temp_int2);
-				temp_int=temp_int-100*temp_int2;
-				temp_int2=temp_int/10;
-				Str2[8]=btoa(temp_int2);
-				temp_int=temp_int-10*temp_int2;
-				Str2[9]=btoa(temp_int);
+				temp_int2 = temp_int / 100;
+				Str2[7] = btoa(temp_int2);
+				temp_int = temp_int - (100 * temp_int2);
+				temp_int2 = temp_int / 10;
+				Str2[8] = btoa(temp_int2);
+				temp_int = temp_int - (10 * temp_int2);
+				Str2[9] = btoa(temp_int);
 				LCD_PrString(Str2);
 			#endif
 			
 			#ifdef LCD_Temperature_Graph
-				temp_int=Ri_Delta-Ri_Delta_to_Temperature_C_Start;
-				if (temp_int<0)
-				{
-					temp_int=0;
+				temp_int = Ri_Delta - Ri_Delta_to_Temperature_C_Start;
+
+				if (temp_int < 0) {
+					temp_int = 0;
+				} else if (temp_int > (Ri_Delta_to_Temperature_C_Size - 1)) {
+					temp_int = (Ri_Delta_to_Temperature_C_Size - 1);
 				}
-				if (temp_int>(Ri_Delta_to_Temperature_C_Size-1))
-				{
-					temp_int=(Ri_Delta_to_Temperature_C_Size-1);
-				}
-				LSU_Temperature_C=Ri_Delta_to_Graph[temp_int];
-				LCD_DrawBG(1,0,16,LSU_Temperature_C);
+
+				LSU_Temperature_C = Ri_Delta_to_Graph[temp_int];
+				LCD_DrawBG(1, 0, 16, LSU_Temperature_C);
 			#endif
 		}
-		if (Heatup_Heater_Output<255)
-		{   
-			if (Heatup_Counter>Heatup_Counter_Set)
-			{
-				Heatup_Counter=0;
+
+		if (Heatup_Heater_Output < 255) {   
+			if (Heatup_Counter > Heatup_Counter_Set) {
+				Heatup_Counter = 0;
 				Heatup_Heater_Output++;
 			}
-			if ((Ri_Min>50) && (Ri_Max<475) && (Ri_Delta<Ri_Delta_Target))
-			{
-				Heatup_Heater_Output=255;
-				Ri_Delta_Error_Sum=0;
+
+			if ((Ri_Min > 50) && (Ri_Max < 475) && (Ri_Delta < Ri_Delta_Target)) {
+				Heatup_Heater_Output = 255;
+				Ri_Delta_Error_Sum = 0;
 			}
 		}
 	}
