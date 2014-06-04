@@ -16,8 +16,8 @@ extern BYTE Sleep_Counter; //Variable Declared in SleepTimerINT.asm
 
 #define Lin_Out
 #define NB_Out
-#define LCD_Lambda_Graph
-#define LCD_Temperature_Graph
+#define LCD_AFR_Text
+#define LCD_Temperature_Text
 //#define PID_Tune
 #define Ri_Filter_Strength 4
 #define ip_Filter_Strength 4
@@ -231,8 +231,17 @@ char btoa(BYTE Base10)
 	INT ip,ip_Justified;
 	BYTE Lambda_x100;
 	INT LSU_Temperature_C;
-	char Str1[] = "Lambda=x.xx";
-	char Str2[] = "Temperature=xxxC"; 
+
+#ifdef LCD_Lambda_Text
+	char Str1[] = "Lambda = x.xx";
+#endif
+
+#ifdef LCD_AFR_Text
+	char Str1[] = "AFR = xx.x";
+#endif
+
+	char Str2[] = "Temp = xxxC"; 
+
 void main(void)
 {
 	unsigned long temp_ulong;
@@ -344,12 +353,35 @@ void main(void)
 				temp_int=Lambda_x100;
 				LCD_Position(0,0);
 				temp_int2=temp_int/100;
-				Str1[7]=btoa(temp_int2);
+				Str1[9]=btoa(temp_int2);
 				temp_int=temp_int-100*temp_int2;
 				temp_int2=temp_int/10;
-				Str1[9]=btoa(temp_int2);
+				Str1[11]=btoa(temp_int2);
 				temp_int=temp_int-10*temp_int2;
-				Str1[10]=btoa(temp_int);
+				Str1[12]=btoa(temp_int);
+				LCD_PrString(Str1);
+			#endif
+
+			#ifdef LCD_AFR_Text
+				temp_int=ip-ip_to_Lambda_Lookup_Start;
+				if (temp_int<0)
+				{
+					temp_int=0;
+				}
+				if (temp_int>(ip_to_Lambda_Lookup_Size-1))
+				{
+					temp_int=(ip_to_Lambda_Lookup_Size-1);
+				}
+				Lambda_x100=ip_to_Lambda_Lookup[temp_int];
+				temp_int=Lambda_x100 * 147;
+				LCD_Position(0,0);
+				temp_int2=temp_int/100;
+				Str1[6]=btoa(temp_int2);
+				temp_int=temp_int-100*temp_int2;
+				temp_int2=temp_int/10;
+				Str1[7]=btoa(temp_int2);
+				temp_int=temp_int-10*temp_int2;
+				Str1[9]=btoa(temp_int);
 				LCD_PrString(Str1);
 			#endif
 			
@@ -381,12 +413,12 @@ void main(void)
 				temp_int=LSU_Temperature_C;
 				LCD_Position(1,0);           
 				temp_int2=temp_int/100;
-				Str2[12]=btoa(temp_int2);
+				Str2[7]=btoa(temp_int2);
 				temp_int=temp_int-100*temp_int2;
 				temp_int2=temp_int/10;
-				Str2[13]=btoa(temp_int2);
+				Str2[8]=btoa(temp_int2);
 				temp_int=temp_int-10*temp_int2;
-				Str2[14]=btoa(temp_int);
+				Str2[9]=btoa(temp_int);
 				LCD_PrString(Str2);
 			#endif
 			
