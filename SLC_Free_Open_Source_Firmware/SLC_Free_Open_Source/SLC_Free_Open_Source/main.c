@@ -237,7 +237,7 @@ char btoa(BYTE Base10)
 #endif
 
 #ifdef LCD_AFR_Text
-	char Str1[] = "AFR = xx.x";
+	char Str1[] = "AFR = xx.xx";
 #endif
 
 	char Str2[] = "Temp = xxxC"; 
@@ -375,13 +375,16 @@ void main(void)
 				Lambda_x100=ip_to_Lambda_Lookup[temp_int];
 				temp_int=Lambda_x100 * 147;
 				LCD_Position(0,0);
-				temp_int2=temp_int/100;
+				temp_int2=temp_int/1000;
 				Str1[6]=btoa(temp_int2);
+				temp_int=temp_int-1000*temp_int2;
+				temp_int2=temp_int/100;
+				Str1[7]=btoa(temp_int2);
 				temp_int=temp_int-100*temp_int2;
 				temp_int2=temp_int/10;
-				Str1[7]=btoa(temp_int2);
+				Str1[9]=btoa(temp_int2);
 				temp_int=temp_int-10*temp_int2;
-				Str1[9]=btoa(temp_int);
+				Str1[10]=btoa(temp_int);
 				LCD_PrString(Str1);
 			#endif
 			
